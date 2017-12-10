@@ -16,7 +16,7 @@ import sys
 import time
 import random
 import datetime
-
+import nltk
 import quepy
 from SPARQLWrapper import SPARQLWrapper, JSON
 
@@ -138,21 +138,28 @@ def wikipedia2dbpedia(wikipedia_url):
 
 
 if __name__ == "__main__":
+    nltk.download('wordnet')
+    nltk.download('averaged_perceptron_tagger')
     default_questions = [
-        "What is a car?",
-        "Who is Tom Cruise?",
-        "Who is George Lucas?",
-        "Who is Mirtha Legrand?",
-        # "List Microsoft software",
-        "Name Fiat cars",
-        "time in argentina",
-        "what time is it in Chile?",
-        "List movies directed by Martin Scorsese",
-        "How long is Pulp Fiction",
-        "which movies did Mel Gibson starred?",
-        "When was Gladiator released?",
-        "who directed Pocahontas?",
-        "actors of Fight Club",
+        #"What is a car?",
+        #"Who is Tom Cruise?",
+        #"Who is George Lucas?",
+        #"Who is Mirtha Legrand?",
+        #"List Microsoft software",
+        #"Name Fiat cars",
+        #"time in argentina",
+        #"what time is it in Chile?",
+        #"List movies directed by Martin Scorsese",
+        #"How long is Pulp Fiction",
+        #"which movies did Mel Gibson starred?",
+        #"When was Gladiator released?",
+        #"who directed Pocahontas?",
+        #"actors of Fight Club",
+        "Who is Pep Guardiola?",
+        "Who won more La Liga title?",
+        "Who manages Monaco?",
+        "Who is Monaco chairman?",
+        "Which is the ground of Real Madrid?"
     ]
 
     if "-d" in sys.argv:

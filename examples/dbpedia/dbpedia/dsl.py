@@ -56,9 +56,11 @@ class HasShowName(FixedDataRelation):
 
 
 class HasName(FixedDataRelation):
-    relation = "dbpprop:name"
+    relation = "foaf:name"
     language = "en"
 
+class HasShortName(FixedDataRelation):
+    relation = "dbp:shortName"
 
 class DefinitionOf(FixedRelation):
     relation = "rdfs:comment"
@@ -197,3 +199,32 @@ class IsBook(FixedType):
 class LocationOf(FixedRelation):
     relation = "dbpedia-owl:location"
     reverse = True
+
+#SOCCER
+class ManagerOf(FixedRelation):
+    relation = "dbo:manager"
+    reverse = True
+
+class ManagerBy(FixedRelation):
+    relation = "dbo:manager"
+
+class MostSuccessfulOf(FixedRelation):
+    relation = "dbp:mostSuccessfulClub"
+    reverse = True
+
+class ChairmanOf(FixedRelation):
+    relation = "dbo:chairman"
+    reverse = True
+
+class GroundOf(FixedRelation):
+    relation = "dbo:ground"
+    reverse = True
+
+class IsTeam(FixedType):
+    fixedtype = "dbo:SoccerClub"
+
+class IsManager(FixedType):
+    fixedtype = "dbo:SportsManager"
+
+class IsLeague(FixedType):
+    fixedtype = "dbo:SoccerLeague"
