@@ -159,7 +159,8 @@ if __name__ == "__main__":
         "Who won more La Liga title?",
         "Who manages Monaco?",
         "Who is Monaco chairman?",
-        "Which is the ground of Real Madrid?"
+        "Which is the ground of Porto?",
+        "What are the players of Manchester United?"
     ]
 
     if "-d" in sys.argv:

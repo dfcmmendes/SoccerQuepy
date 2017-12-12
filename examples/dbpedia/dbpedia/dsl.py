@@ -220,6 +220,16 @@ class GroundOf(FixedRelation):
     relation = "dbo:ground"
     reverse = True
 
+class IsCareerStation(FixedType):
+    fixedtype ="dbo:CareerStation"
+
+class IsTeamOf(FixedRelation):
+    relation = "dbo:team"
+    reverse = True
+
+class IsStadium(FixedType):
+    fixedtype = "dbo:Stadium"
+
 class IsTeam(FixedType):
     fixedtype = "dbo:SoccerClub"
 

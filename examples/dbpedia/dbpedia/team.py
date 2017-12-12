@@ -3,12 +3,13 @@
 #Soccer team related class
 #University of Coimbra
 #Authors:   Daniel  Mendes  <dfmendes@student.dei.uc.pt>
-#           Pedro   Silva   <@student.dei.uc.pt>
+#           Pedro   Silva   <ptsilva@student.dei.uc.pt>
 
 from refo import Plus, Question
 from quepy.dsl import HasKeyword
-from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
-from dsl import IsTeam, IsManager, ManagerOf, IsPerson, NameOf, IsLeague, HasName, MostSuccessfulOf, ChairmanOf, IsPlace, GroundOf
+from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle, Token
+from dsl import IsTeam, IsManager, ManagerOf, IsPerson, NameOf, IsLeague, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
+    LabelOf, IsCareerStation, IsTeamOf
 
 nouns = Plus(Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
 
@@ -44,15 +45,35 @@ class ChairmanOfQuestion(QuestionTemplate):
         return chairman_name, "literal"
 
 class GroundOfQuestion(QuestionTemplate):
-    regex = ((Lemmas("which")+ Lemma("be") + Pos("DT") + Lemma("ground") +
-              Lemma("of") + Team()) |
-             (Lemma("which") + Lemma("be")  + Team())) + Lemma("ground") + \
-            Question(Pos("."))
+    opening = Lemma("which") + Token("is")
+    regex = opening + Pos("DT") + Lemma("ground") + Pos("IN") + \
+        Question(Pos("DT")) + Team() + Question(Pos("."))
 
     def interpret(self, match):
-        ground = IsPlace() + GroundOf(match.team)
+        ground = IsStadium() + GroundOf(match.team)
         ground_name = NameOf(ground)
         return ground_name, "literal"
+
+class WhoPlayedIn(QuestionTemplate):
+    """
+        Regex for questions about players of a teamr.
+        Ex: "Real Madrid players"
+            "What are the players of Manchester United?"
+        """
+
+    #^^<http://www.w3.org/2001/XMLSchema#gYear>
+
+    regex1 = Team() + Lemma("player")
+    regex2 = Lemma("member") + Pos("IN") + Team()
+    regex3 = Pos("WP") + Lemma("be") + Pos("DT") + Lemma("player") + \
+             Pos("IN") + Team()
+
+    regex = (regex1 | regex2 | regex3) + Question(Pos("."))
+
+    def interpret(self, match):
+        member = IsCareerStation() + IsTeamOf(match.team)
+        label = LabelOf(member)
+        return label, "enum"
 
 class ManagerOfQuestion(QuestionTemplate):
     """
