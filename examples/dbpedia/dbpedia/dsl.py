@@ -225,7 +225,7 @@ class IsCareerStation(FixedType):
 
 class IsTeamOf(FixedRelation):
     relation = "dbo:team"
-    reverse = True
+
 
 class IsStadium(FixedType):
     fixedtype = "dbo:Stadium"

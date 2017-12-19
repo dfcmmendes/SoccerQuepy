@@ -18,6 +18,7 @@ import random
 import datetime
 import nltk
 import quepy
+import unicodedata
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 sparql = SPARQLWrapper("http://dbpedia.org/sparql")
@@ -43,15 +44,17 @@ def print_enum(results, target, metadata=None):
                 if label not in used_labels:
                     used_labels.append(label)
                     print label
+    return used_labels
 
 
 def print_literal(results, target, metadata=None):
     for result in results["results"]["bindings"]:
         literal = result[target]["value"]
         if metadata:
-            print metadata.format(literal)
+            return metadata.format(literal)
         else:
-            print literal
+            return literal
+    #return unicodedata.normalize('NFKD', literal).encode('ascii','ignore')
 
 
 def print_time(results, target, metadata=None):
@@ -137,7 +140,7 @@ def wikipedia2dbpedia(wikipedia_url):
         return results["results"]["bindings"][0]["url"]["value"]
 
 
-if __name__ == "__main__":
+def startquepy(args):
     nltk.download('wordnet')
     nltk.download('averaged_perceptron_tagger')
     default_questions = [
@@ -155,23 +158,24 @@ if __name__ == "__main__":
         #"When was Gladiator released?",
         #"who directed Pocahontas?",
         #"actors of Fight Club",
-        "Who is Pep Guardiola?",
-        "Who won more La Liga title?",
-        "Who manages Monaco?",
-        "Who is Monaco chairman?",
-        "Which is the ground of Porto?",
-        "What are the players of Manchester United?"
+        #"Who is Pep Guardiola?",
+        #"Who won more La Liga title?",
+        #"Who manages Monaco?",
+        #"Who is Monaco chairman?",
+        #"Which is the ground of Porto?",
+        #"What are the players of Manchester United?"
     ]
 
     if "-d" in sys.argv:
         quepy.set_loglevel("DEBUG")
         sys.argv.remove("-d")
 
-    if len(sys.argv) > 1:
-        question = " ".join(sys.argv[1:])
+    if len(args) > 1:
+        #args_as_str = unicodedata.normalize('NFKD', args).encode('ascii', 'ignore')
+        question = unicodedata.normalize('NFKD', args).encode('ascii', 'ignore')
 
         if question.count("wikipedia.org"):
-            print wikipedia2dbpedia(sys.argv[1])
+            print wikipedia2dbpedia(question)
             sys.exit(0)
         else:
             questions = [question]
@@ -186,35 +190,34 @@ if __name__ == "__main__":
         "age": print_age,
     }
 
-    for question in questions:
-        print question
-        print "-" * len(question)
+    print question
+    print "-" * len(question)
 
-        target, query, metadata = dbpedia.get_query(question)
+    target, query, metadata = dbpedia.get_query(question)
 
-        if isinstance(metadata, tuple):
-            query_type = metadata[0]
-            metadata = metadata[1]
-        else:
-            query_type = metadata
-            metadata = None
+    if isinstance(metadata, tuple):
+        query_type = metadata[0]
+        metadata = metadata[1]
+    else:
+        query_type = metadata
+        metadata = None
 
-        if query is None:
-            print "Query not generated :(\n"
-            continue
+    if query is None:
+        return "Query not generated :(\n"
 
-        print query
+    print query
 
-        if target.startswith("?"):
-            target = target[1:]
-        if query:
-            sparql.setQuery(query)
-            sparql.setReturnFormat(JSON)
-            results = sparql.query().convert()
+    if target.startswith("?"):
+        target = target[1:]
+    if query:
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
 
-            if not results["results"]["bindings"]:
-                print "No answer found :("
-                continue
+        if not results["results"]["bindings"]:
+            return "No answer found :("
 
-        print_handlers[query_type](results, target, metadata)
-        print
+    return print_handlers[query_type](results, target, metadata)
+
+if __name__ == "__main__":
+    startquepy(sys.argv)

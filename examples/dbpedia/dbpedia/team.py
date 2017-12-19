@@ -37,6 +37,7 @@ class ChairmanOfQuestion(QuestionTemplate):
     regex = ((Lemmas("who")+ Lemma("be") + Pos("DT") + Lemma("chairman") +
               Pos("of") + Team()) |
              (Lemma("who") + Lemma("be")  + Team())) + Lemma("chairman") + \
+            Question(Pos(".")) | (Lemma("who") + Lemma("be")  + Team()) + Lemma("boss") + \
             Question(Pos("."))
 
     def interpret(self, match):
