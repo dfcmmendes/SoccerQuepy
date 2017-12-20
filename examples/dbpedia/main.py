@@ -44,7 +44,6 @@ def print_enum(results, target, metadata=None):
                 if label not in used_labels:
                     used_labels.append(label)
                     print label
-    return used_labels
 
 
 def print_literal(results, target, metadata=None):
@@ -53,8 +52,8 @@ def print_literal(results, target, metadata=None):
         if metadata:
             return metadata.format(literal)
         else:
-            return literal
-    #return unicodedata.normalize('NFKD', literal).encode('ascii','ignore')
+            literal_str = unicodedata.normalize('NFKD', literal).encode('ascii', 'ignore')
+            return literal_str
 
 
 def print_time(results, target, metadata=None):
@@ -158,12 +157,12 @@ def startquepy(args):
         #"When was Gladiator released?",
         #"who directed Pocahontas?",
         #"actors of Fight Club",
-        #"Who is Pep Guardiola?",
-        #"Who won more La Liga title?",
-        #"Who manages Monaco?",
-        #"Who is Monaco chairman?",
-        #"Which is the ground of Porto?",
-        #"What are the players of Manchester United?"
+        "Who is Pep Guardiola?",
+        "Who won more La Liga title?",
+        "Who manages Monaco?",
+        "Who is Monaco chairman?",
+        "Which is the ground of Porto?",
+        "What are the players of Manchester United?"
     ]
 
     if "-d" in sys.argv:
@@ -217,7 +216,9 @@ def startquepy(args):
         if not results["results"]["bindings"]:
             return "No answer found :("
 
-    return print_handlers[query_type](results, target, metadata)
+        return print_handlers[query_type](results, target, metadata)
+
+
 
 if __name__ == "__main__":
     startquepy(sys.argv)

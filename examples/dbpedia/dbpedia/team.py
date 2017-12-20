@@ -8,16 +8,18 @@
 from refo import Plus, Question
 from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle, Token
-from dsl import IsTeam, IsManager, ManagerOf, IsPerson, NameOf, IsLeague, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
+from dsl import IsTeam, IsManager, ManagerOf, IsPerson, NameOf, IsLeague, IsCountry, IsCountryLeagueOf, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
     LabelOf, IsCareerStation, IsTeamOf
 
 nouns = Plus(Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
+
 
 class Team(Particle):
     regex = Question(Pos("DT")) + nouns
     def interpret(self, match):
         name = match.words.tokens
         return IsTeam() + HasName(name)
+
 
 class Manager(Particle):
     regex = nouns
@@ -26,12 +28,22 @@ class Manager(Particle):
         name = match.words.tokens
         return IsManager() + HasKeyword(name)
 
+
 class League(Particle):
     regex = nouns
 
     def interpret(self, match):
         name = match.words.tokens
         return IsLeague() + HasKeyword(name)
+
+
+class Country(Particle):
+    regex = nouns
+
+    def interpret(self, match):
+        name = match.words.tokens
+        return IsCountry() + HasKeyword(name)
+
 
 class ChairmanOfQuestion(QuestionTemplate):
     regex = ((Lemmas("who")+ Lemma("be") + Pos("DT") + Lemma("chairman") +
@@ -45,6 +57,7 @@ class ChairmanOfQuestion(QuestionTemplate):
         chairman_name = NameOf(chairman)
         return chairman_name, "literal"
 
+
 class GroundOfQuestion(QuestionTemplate):
     opening = Lemma("which") + Token("is")
     regex = opening + Pos("DT") + Lemma("ground") + Pos("IN") + \
@@ -54,6 +67,7 @@ class GroundOfQuestion(QuestionTemplate):
         ground = IsStadium() + GroundOf(match.team)
         ground_name = NameOf(ground)
         return ground_name, "literal"
+
 
 class WhoPlayedIn(QuestionTemplate):
     """
@@ -76,14 +90,18 @@ class WhoPlayedIn(QuestionTemplate):
         label = LabelOf(member)
         return label, "enum"
 
+
 class ManagerOfQuestion(QuestionTemplate):
     """
     Ex: "Who is the manager of Real Madrid?"
         "who manages Manchester United?"
+        "Who is the coach of Porto"
+        "who coach Porto?"
     """
 
-    regex = ((Lemmas("who be") + Pos("DT") + Lemma("manager") +
-             Pos("of") + Team()) |
+    regex = ((Lemmas("who be") + Pos("DT") + Lemma("manager") + Pos("of") + Team()) |
+             (Lemma("who") + Lemma("coach") + Team()) |
+             (Lemma("who be") + Pos("DT") + Lemma("coach") + Lemma("of") + Team()) |
              (Lemma("who") + Lemma("manage") + Team())) + \
             Question(Pos("."))
 
@@ -92,13 +110,13 @@ class ManagerOfQuestion(QuestionTemplate):
         manager_name = NameOf(manager)
         return manager_name, "literal"
 
+
 class MostWinsQuestion(QuestionTemplate):
     """
     Ex: "Who won more La Liga?"
     """
 
-    regex = ((Lemmas("who win") + Lemma("more") +
-             Pos("of") + League()) |
+    regex = ((Lemmas("who win") + Lemma("more") + Pos("of") + League()) |
              (Lemma("who") + Lemma("win") + Lemma("more") + League() + Lemma("title"))) + \
             Question(Pos("."))
 
@@ -107,3 +125,19 @@ class MostWinsQuestion(QuestionTemplate):
         team_name = NameOf(team)
         return team_name, "literal"
 
+
+class MostWinsQuestionCountry(QuestionTemplate):
+    """
+    Ex: "Who won more in Spain?"
+        "Who won more Spain titles?"
+    """
+
+    regex = ((Lemmas("who win") + Lemma("more") + Lemma("in") + Country()) |
+             (Lemma("who") + Lemma("win") + Lemma("more") + Country() + Lemma("title"))) + \
+            Question(Pos("."))
+
+    def interpret(self, match):
+        league = IsLeague() + IsCountryLeagueOf(match.country)
+        team = IsTeam() + MostSuccessfulOf(league)
+        team_name = NameOf(team)
+        return team_name, "literal"

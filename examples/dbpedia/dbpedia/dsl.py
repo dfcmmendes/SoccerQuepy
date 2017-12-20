@@ -27,7 +27,7 @@ class IsPlace(FixedType):
 
 
 class IsCountry(FixedType):
-    fixedtype = "dbpedia-owl:Country"
+    fixedtype = "dbo:Country"
 
 
 class IsPopulatedPlace(FixedType):
@@ -238,3 +238,8 @@ class IsManager(FixedType):
 
 class IsLeague(FixedType):
     fixedtype = "dbo:SoccerLeague"
+
+
+class IsCountryLeagueOf(FixedRelation):
+    relation = "dbo:Country"
+    reverse = True
