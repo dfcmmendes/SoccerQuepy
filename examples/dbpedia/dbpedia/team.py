@@ -8,8 +8,10 @@
 from refo import Plus, Question
 from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle, Token
-from dsl import IsTeam, IsManager, ManagerOf, IsPerson, NameOf, IsLeague, IsCountry, IsCountryLeagueOf, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
+from dsl import IsTeam, IsManager, ManagerOf, FormationDateOf, LeagueOf, IsPerson, NameOf, CapOf, IsLeague, IsCountry, IsCountryLeagueOf, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
     LabelOf, IsCareerStation, IsTeamOf
+from nltk.corpus import wordnet as wn
+
 
 nouns = Plus(Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
 
@@ -159,3 +161,48 @@ class MostWinsQuestionCountry(QuestionTemplate):
         team = IsTeam() + MostSuccessfulOf(league)
         team_name = NameOf(team)
         return team_name, "literal"
+
+
+class ClubGroundCapacity(QuestionTemplate):
+    """
+    Ex: "What is the ground capacity of Barcelona?"
+        "What is Porto stadium capacity?"
+    """
+
+    regex = ((Pos("WP") + Lemma("be") + Pos("DT") + Lemma("ground") + Lemma("capacity") + Lemma("of") + Team()) |
+              Pos("WP") + Lemma("be") + Team() + Lemma("stadium") + Lemma("capacity")) + \
+            Question(Pos("."))
+
+    def interpret(self, match):
+        cap = CapOf(match.team)
+        return cap, ("literal", "{} seats")
+
+
+class ClubPlayingLeague(QuestionTemplate):
+    """
+    Ex: "What is the league of Barcelona?"
+        "What is Porto league?"
+    """
+
+    regex = ((Pos("WP") + Lemma("be") + Pos("DT") + Lemma("league") + Lemma("of") + Team()) |
+              Pos("WP") + Lemma("be") + Team() + Lemma("league")) + \
+            Question(Pos("."))
+
+    def interpret(self, match):
+        cap = LeagueOf(match.team)
+        return cap, "literal"
+
+
+class ClubFormationDate(QuestionTemplate):
+    """
+    Ex: "What is the formation date of Barcelona?"
+        "What is Porto foundation date?"
+    """
+
+    regex = ((Pos("WP") + Lemma("be") + Pos("DT") + Lemma("formation") + Lemma("date") + Lemma("of") + Team() |
+              Pos("WP") + Lemma("be") + Team() + Lemma("foundation") + Lemma("date"))) + \
+            Question(Pos("."))
+
+    def interpret(self, match):
+        formationDate = FormationDateOf(match.team)
+        return formationDate, "literal"
