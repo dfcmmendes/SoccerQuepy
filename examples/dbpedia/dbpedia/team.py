@@ -46,6 +46,12 @@ class Country(Particle):
 
 
 class ChairmanOfQuestion(QuestionTemplate):
+    """
+        Regex for questions about club chairman.
+        Ex: "Who is the chairman of Barcelona?"
+            "Who is Porto chairman?"
+            "Who is Porto boss?"
+        """
     regex = ((Lemmas("who")+ Lemma("be") + Pos("DT") + Lemma("chairman") +
               Pos("of") + Team()) |
              (Lemma("who") + Lemma("be")  + Team())) + Lemma("chairman") + \
@@ -59,9 +65,21 @@ class ChairmanOfQuestion(QuestionTemplate):
 
 
 class GroundOfQuestion(QuestionTemplate):
+    """
+        Regex for questions about club grounds.
+        Ex: "Which is the ground of Barcelona?"
+            "Which is the stadium of Porto?"
+        """
+
     opening = Lemma("which") + Token("is")
-    regex = opening + Pos("DT") + Lemma("ground") + Pos("IN") + \
-        Question(Pos("DT")) + Team() + Question(Pos("."))
+
+    regex1 = opening + Pos("DT") + Lemma("ground") + Pos("IN") + \
+        Question(Pos("DT")) + Team()
+
+    regex2 = opening + Pos("DT") + Lemma("stadium") + Pos("IN") + \
+        Question(Pos("DT")) + Team()
+
+    regex = (regex1 | regex2) + Question(Pos("."))
 
     def interpret(self, match):
         ground = IsStadium() + GroundOf(match.team)
@@ -133,7 +151,7 @@ class MostWinsQuestionCountry(QuestionTemplate):
     """
 
     regex = ((Lemmas("who win") + Lemma("more") + Lemma("in") + Country()) |
-             (Lemma("who") + Lemma("win") + Lemma("more") + Country() + Lemma("title"))) + \
+             (Lemmas("who win") + Lemma("more") + Country() + Lemma("title"))) + \
             Question(Pos("."))
 
     def interpret(self, match):
