@@ -241,5 +241,4 @@ class IsLeague(FixedType):
 
 
 class IsCountryLeagueOf(FixedRelation):
-    relation = "dbo:Country"
-    reverse = True
+    relation = "dbo:country"

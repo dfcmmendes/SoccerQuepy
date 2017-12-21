@@ -47,13 +47,14 @@ def print_enum(results, target, metadata=None):
 
 
 def print_literal(results, target, metadata=None):
+    res = "\n"
     for result in results["results"]["bindings"]:
         literal = result[target]["value"]
         if metadata:
-            return metadata.format(literal)
+            res += metadata.format(literal) + "\n"
         else:
-            literal_str = unicodedata.normalize('NFKD', literal).encode('ascii', 'ignore')
-            return literal_str
+            res += unicodedata.normalize('NFKD', literal).encode('ascii', 'ignore') + "\n"
+    return res
 
 
 def print_time(results, target, metadata=None):
