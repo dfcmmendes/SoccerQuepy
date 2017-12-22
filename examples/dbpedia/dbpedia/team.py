@@ -8,8 +8,10 @@
 from refo import Plus, Question
 from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle, Token
-from dsl import IsTeam, IsManager, ManagerOf, IsPerson, NameOf, IsLeague, IsCountry, IsCountryLeagueOf, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
-    LabelOf, IsCareerStation, IsTeamOf, IsCareerStationOf, HasYear
+from dsl import IsTeam, IsManager, ManagerOf, FormationDateOf, LeagueOf, IsPerson, NameOf, CapOf, IsLeague, IsCountry, IsCountryLeagueOf, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
+    LabelOf, IsCareerStation, IsTeamOf, HasYear, IsCareerStationOf
+
+
 
 nouns = Plus(Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
 numbers = Plus(Pos("CD"))
@@ -44,12 +46,19 @@ class League(Particle):
 
 class Country(Particle):
     regex = nouns
+
     def interpret(self, match):
         name = match.words.tokens
         return IsCountry() + HasKeyword(name)
 
 
 class ChairmanOfQuestion(QuestionTemplate):
+    """
+        Regex for questions about club chairman.
+        Ex: "Who is the chairman of Barcelona?"
+            "Who is Porto chairman?"
+            "Who is Porto boss?"
+        """
     regex = ((Lemmas("who")+ Lemma("be") + Pos("DT") + Lemma("chairman") +
               Pos("of") + Team()) |
              (Lemma("who") + Lemma("be")  + Team())) + Lemma("chairman") + \
@@ -63,9 +72,21 @@ class ChairmanOfQuestion(QuestionTemplate):
 
 
 class GroundOfQuestion(QuestionTemplate):
+    """
+        Regex for questions about club grounds.
+        Ex: "Which is the ground of Barcelona?"
+            "Which is the stadium of Porto?"
+        """
+
     opening = Lemma("which") + Token("is")
-    regex = opening + Pos("DT") + Lemma("ground") + Pos("IN") + \
-        Question(Pos("DT")) + Team() + Question(Pos("."))
+
+    regex1 = opening + Pos("DT") + Lemma("ground") + Pos("IN") + \
+        Question(Pos("DT")) + Team()
+
+    regex2 = opening + Pos("DT") + Lemma("stadium") + Pos("IN") + \
+        Question(Pos("DT")) + Team()
+
+    regex = (regex1 | regex2) + Question(Pos("."))
 
     def interpret(self, match):
         ground = IsStadium() + GroundOf(match.team)
@@ -85,15 +106,14 @@ class WhoPlayedIn(QuestionTemplate):
     regex1 = Team() + Lemma("player")
     regex2 = Lemma("member") + Pos("IN") + Team()
     regex3 = Pos("WP") + Lemma("be") + Pos("DT") + Lemma("player") + \
-             Pos("IN") + Team() + Year()
+             Pos("IN") + Team()
 
     regex = (regex1 | regex2 | regex3) + Question(Pos("."))
 
     def interpret(self, match):
-        memberStation = IsCareerStation() + IsTeamOf(match.team) + HasYear(match.year)
-        member = IsPerson() + IsCareerStationOf(memberStation)
-        member_name = NameOf(member)
-        return member_name, "enum"
+        member = IsCareerStation() + IsTeamOf(match.team)
+        label = LabelOf(member)
+        return label, "enum"
 
 
 class ManagerOfQuestion(QuestionTemplate):
@@ -138,7 +158,7 @@ class MostWinsQuestionCountry(QuestionTemplate):
     """
 
     regex = ((Lemmas("who win") + Lemma("more") + Lemma("in") + Country()) |
-             (Lemma("who") + Lemma("win") + Lemma("more") + Country() + Lemma("title"))) + \
+             (Lemmas("who win") + Lemma("more") + Country() + Lemma("title"))) + \
             Question(Pos("."))
 
     def interpret(self, match):
@@ -146,3 +166,70 @@ class MostWinsQuestionCountry(QuestionTemplate):
         team = IsTeam() + MostSuccessfulOf(league)
         team_name = NameOf(team)
         return team_name, "literal"
+
+
+class ClubGroundCapacity(QuestionTemplate):
+    """
+    Ex: "What is the ground capacity of Barcelona?"
+        "What is Porto stadium capacity?"
+    """
+
+    regex = ((Pos("WP") + Lemma("be") + Pos("DT") + Lemma("ground") + Lemma("capacity") + Lemma("of") + Team()) |
+              Pos("WP") + Lemma("be") + Team() + Lemma("stadium") + Lemma("capacity")) + \
+            Question(Pos("."))
+
+    def interpret(self, match):
+        cap = CapOf(match.team)
+        return cap, ("literal", "{} seats")
+
+
+class ClubPlayingLeague(QuestionTemplate):
+    """
+    Ex: "What is the league of Barcelona?"
+        "What is Porto league?"
+    """
+
+    regex = ((Pos("WP") + Lemma("be") + Pos("DT") + Lemma("league") + Lemma("of") + Team()) |
+              Pos("WP") + Lemma("be") + Team() + Lemma("league")) + \
+            Question(Pos("."))
+
+    def interpret(self, match):
+        cap = LeagueOf(match.team)
+        return cap, "literal"
+
+
+class ClubFormationDate(QuestionTemplate):
+    """
+    Ex: "What is the formation date of Barcelona?"
+        "What is Porto foundation date?"
+    """
+
+    regex = ((Pos("WP") + Lemma("be") + Pos("DT") + Lemma("formation") + Lemma("date") + Lemma("of") + Team() |
+              Pos("WP") + Lemma("be") + Team() + Lemma("foundation") + Lemma("date"))) + \
+            Question(Pos("."))
+
+    def interpret(self, match):
+        formationDate = FormationDateOf(match.team)
+        return formationDate, "literal"
+
+class WhoPlayedIn(QuestionTemplate):
+    """
+        Regex for questions about players of a teamr.
+        Ex: "Real Madrid players"
+            "What are the players of Manchester United?"
+        """
+
+    #^^<http://www.w3.org/2001/XMLSchema#gYear>
+
+    regex1 = Team() + Lemma("player")
+    regex2 = Lemma("member") + Pos("IN") + Team()
+    regex3 = Pos("WP") + Lemma("be") + Pos("DT") + Lemma("player") + \
+             Pos("IN") + Team() + Year()
+
+    regex = (regex1 | regex2 | regex3) + Question(Pos("."))
+
+    def interpret(self, match):
+        memberStation = IsCareerStation() + IsTeamOf(match.team) + HasYear(match.year)
+        member = IsPerson() + IsCareerStationOf(memberStation)
+        member_name = NameOf(member)
+        return member_name, "enum"

@@ -33,9 +33,6 @@ def print_define(results, target, metadata=None):
             return result[target]["value"]
             print
 
-
-
-
 def print_enum(results, target, metadata=None):
     used_labels = []
     res = ''
@@ -167,7 +164,7 @@ def startquepy(args):
         "Who manages Monaco?",
         "Who is Monaco chairman?",
         "Which is the ground of Porto?",
-        "What are the players of Manchester United?"
+        "Which are the players of Manchester United? 2010"
     ]
 
     if "-d" in sys.argv:

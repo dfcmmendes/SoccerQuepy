@@ -19,6 +19,7 @@ from quepy.encodingpolicy import encoding_flexible_conversion
 HasKeyword.relation = "rdfs:label"
 HasKeyword.language = "en"
 
+
 class IsPerson(FixedType):
     fixedtype = "foaf:Person"
 
@@ -244,9 +245,20 @@ class IsLeague(FixedType):
 class IsCountryLeagueOf(FixedRelation):
     relation = "dbo:country"
 
+class CapOf(FixedRelation):
+    relation = "dbo:capacity"
+    reverse = True
+
+class FormationDateOf(FixedRelation):
+    relation = "dbo:formationDate"
+    reverse = True
+
+class LeagueOf(FixedRelation):
+    relation = "dbo:league"
+    reverse = True
+
 class IsCareerStationOf(FixedRelation):
     relation = "dbo:careerStation"
-
 
 class FixedYearRelation(Expression):
     """
