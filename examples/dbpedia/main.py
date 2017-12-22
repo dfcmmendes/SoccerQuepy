@@ -30,12 +30,15 @@ dbpedia = quepy.install("dbpedia")
 def print_define(results, target, metadata=None):
     for result in results["results"]["bindings"]:
         if result[target]["xml:lang"] == "en":
-            print result[target]["value"]
+            return result[target]["value"]
             print
+
+
 
 
 def print_enum(results, target, metadata=None):
     used_labels = []
+    res = ''
 
     for result in results["results"]["bindings"]:
         if result[target]["type"] == u"literal":
@@ -43,8 +46,9 @@ def print_enum(results, target, metadata=None):
                 label = result[target]["value"]
                 if label not in used_labels:
                     used_labels.append(label)
+                    res += label + '\n'
                     print label
-
+    return res
 
 def print_literal(results, target, metadata=None):
     res = "\n"

@@ -9,10 +9,10 @@ from refo import Plus, Question
 from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle, Token
 from dsl import IsTeam, IsManager, ManagerOf, IsPerson, NameOf, IsLeague, IsCountry, IsCountryLeagueOf, HasName, MostSuccessfulOf, ChairmanOf, GroundOf, IsStadium, \
-    LabelOf, IsCareerStation, IsTeamOf
+    LabelOf, IsCareerStation, IsTeamOf, IsCareerStationOf, HasYear
 
 nouns = Plus(Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
-
+numbers = Plus(Pos("CD"))
 
 class Team(Particle):
     regex = Question(Pos("DT")) + nouns
@@ -20,6 +20,11 @@ class Team(Particle):
         name = match.words.tokens
         return IsTeam() + HasName(name)
 
+class Year(Particle):
+    regex = numbers
+    def interpret(self, match):
+        year = match.words.tokens
+        return year
 
 class Manager(Particle):
     regex = nouns
@@ -39,7 +44,6 @@ class League(Particle):
 
 class Country(Particle):
     regex = nouns
-
     def interpret(self, match):
         name = match.words.tokens
         return IsCountry() + HasKeyword(name)
@@ -81,14 +85,15 @@ class WhoPlayedIn(QuestionTemplate):
     regex1 = Team() + Lemma("player")
     regex2 = Lemma("member") + Pos("IN") + Team()
     regex3 = Pos("WP") + Lemma("be") + Pos("DT") + Lemma("player") + \
-             Pos("IN") + Team()
+             Pos("IN") + Team() + Year()
 
     regex = (regex1 | regex2 | regex3) + Question(Pos("."))
 
     def interpret(self, match):
-        member = IsCareerStation() + IsTeamOf(match.team)
-        label = LabelOf(member)
-        return label, "enum"
+        memberStation = IsCareerStation() + IsTeamOf(match.team) + HasYear(match.year)
+        member = IsPerson() + IsCareerStationOf(memberStation)
+        member_name = NameOf(member)
+        return member_name, "enum"
 
 
 class ManagerOfQuestion(QuestionTemplate):

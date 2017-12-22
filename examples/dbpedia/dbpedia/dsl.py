@@ -12,11 +12,12 @@ Domain specific language for DBpedia quepy.
 """
 
 from quepy.dsl import FixedType, HasKeyword, FixedRelation, FixedDataRelation
+from quepy.expression import Expression
+from quepy.encodingpolicy import encoding_flexible_conversion
 
 # Setup the Keywords for this application
 HasKeyword.relation = "rdfs:label"
 HasKeyword.language = "en"
-
 
 class IsPerson(FixedType):
     fixedtype = "foaf:Person"
@@ -242,3 +243,44 @@ class IsLeague(FixedType):
 
 class IsCountryLeagueOf(FixedRelation):
     relation = "dbo:country"
+
+class IsCareerStationOf(FixedRelation):
+    relation = "dbo:careerStation"
+
+
+class FixedYearRelation(Expression):
+    """
+    Expression for a fixed relation. This is
+    "A is related to Data" through the relation defined in `relation`.
+    """
+
+    relation = "dbo:years"
+    type = "http://www.w3.org/2001/XMLSchema#gYear"
+
+    def __init__(self, data):
+        super(FixedYearRelation, self).__init__()
+        if self.relation is None:
+            raise ValueError("You *must* define the `relation` "
+                             "class attribute to use this class.")
+        self.relation2 = encoding_flexible_conversion(self.relation)
+        if self.type is not None:
+            self.type = encoding_flexible_conversion(self.type)
+            data = u"\"{0}\"^^<{1}>".format(data, self.type)
+        self.add_data(self.relation, data)
+
+
+class HasYear(FixedYearRelation):
+    """
+    Abstraction of an information retrieval key, something standarized used
+    to look up things in the database.
+    """
+    relation = u"dbo:years"
+
+    def __init__(self, data):
+        data = self.sanitize(data)
+        super(HasYear, self).__init__(data)
+
+    @staticmethod
+    def sanitize(text):
+        # User can redefine this method if needed
+        return text
